@@ -1,10 +1,15 @@
-CFLAGS := -I./nano/ -g -O2 -Wall
-#LDFLAGS := -lz -lmagic  -Wl,-Bsymbolic-functions -lncursesw -ltinfo
-LDFLAGS := -lncursesw
+X11INC = /usr/X11R6/include
+X11LIB = /usr/X11R6/lib
+PKG_CONFIG = pkg-config
+
+CFLAGS := -I./nano/ -g -O2 -Wall -I$(X11INC) `$(PKG_CONFIG) --cflags fontconfig` `$(PKG_CONFIG) --cflags freetype2`
+LDFLAGS := -lncursesw -I$(X11INC) `$(PKG_CONFIG) --cflags fontconfig` `$(PKG_CONFIG) --cflags freetype2`
+
 
 # Files lists
 NANO_C_SRC := browser.c  chars.c  color.c  cut.c  files.c  global.c  help.c  move.c  nano.c  prompt.c  rcfile.c  search.c  text.c  utils.c  winio.c
-C_SRC := $(addprefix nano/, $(NANO_C_SRC))
+ST_C_SRC := st.c x.c
+C_SRC := $(addprefix nano/, $(NANO_C_SRC)) $(addprefix st/, $(ST_C_SRC))
 C_OBJS := $(C_SRC:%.c=%.o)
 TARGET := nanos
 
@@ -24,13 +29,6 @@ all : $(TARGET).bin
 
 $(TARGET).bin : $(C_OBJS)
 	$(CC) $(C_OBJS) $(LDFLAGS) -o $@
-
-install :
-	mkdir -p $(TARGET_DIR_BIN)
-	$(CP) $(TARGET).bin $(TARGET_BIN)
-
-uninstall :
-	$(RM) $(TARGET_BIN)
 
 clean : 
 	$(RM) $(C_OBJS)
