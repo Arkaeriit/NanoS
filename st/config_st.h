@@ -1,7 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 
 #define VERSION "0.9"
-#warning ooops
 
 /*
  * appearance
@@ -16,7 +15,6 @@ static int borderpx = 2;
  * expects farbfeld format
  * pseudo transparency fixes coordinates to the screen origin
  */
-static const char *bgfile = "/home/mbouillot/dev/perso/nanos/pictures/bg1.ff";
 static const int pseudotransparency = 0;
 
 /*

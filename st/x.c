@@ -20,6 +20,7 @@ char *argv0;
 #include "arg.h"
 #include "st.h"
 #include "win.h"
+#include "bg.h"
 
 /* types used in config_st.h */
 typedef struct {
@@ -155,7 +156,7 @@ static void ximdestroy(XIM, XPointer, XPointer);
 static int xicdestroy(XIC, XPointer, XPointer);
 static void xinit(int, int);
 static void updatexy(void);
-static XImage *loadff(const char *);
+static XImage *loadff();
 static void bginit();
 static void cresize(int, int);
 static void xresize(int, int);
@@ -211,7 +212,7 @@ static void (*handler[LASTEvent])(XEvent *) = {
  * Uncomment if you want the selection to disappear when you select something
  * different in another window.
  */
-/*	[SelectionClear] = selclear_, */
+	[SelectionClear] = selclear_, 
 	[SelectionNotify] = selnotify,
 /*
  * PropertyNotify is only turned on when there is some INCR transfer happening
@@ -1263,53 +1264,42 @@ updatexy()
 }
 
 /*
+ * Read a 4 byte big endian number
+ */
+static int32_t read_big_endian(const char* data) {
+	int32_t ret = 0;
+	for (int i=0; i<4; i++) {
+		ret = ret << 8;
+		ret |= (0xFF & data[i]);
+	}
+	return ret;
+}
+
+#define farbeld_magic "farbfeld"
+
+/*
  * load farbfeld file to XImage
  */
 XImage*
-loadff(const char *filename)
+loadff()
 {
-	uint32_t i, hdr[4], w, h, size;
-	uint64_t *data;
-	FILE *f = fopen(filename, "rb");
+	const uint64_t *data_ro = (uint64_t*) bg[0]; // TODO: handle all the pictures
+	printf("data = %p\n", data_ro);
+	printf("data[0] %lx\n", data_ro[0]);
 
-	if (f == NULL) {
-		fprintf(stderr, "Can not open background image file\n");
+	if (memcmp(data_ro, farbeld_magic, strlen(farbeld_magic))) {
+		fprintf(stderr, "Error, invalid background image\n");
 		return NULL;
 	}
+	printf("dara = %p\n", data_ro);
+	uint32_t w = read_big_endian(((char*) data_ro) + strlen(farbeld_magic));
+	uint32_t h = read_big_endian(((char*) data_ro) + strlen(farbeld_magic) + sizeof(int32_t));
+	uint32_t size = w * h;
+	printf("%u %u %u\n", w, h, size);
+	uint64_t* data = malloc(size * 8 + 8 + 4 + 4); // As this is only used once, we can let this memory leak
+	memcpy(data, data_ro, size * 8 + 4 + 4);
 
-	if (fread(hdr, sizeof(*hdr), LEN(hdr), f) != LEN(hdr))
-		if (ferror(f)) {
-			fprintf(stderr, "fread:");
-			return NULL;
-		}
-		else {
-			fprintf(stderr, "fread: Unexpected end of file\n");
-			return NULL;
-		}
-
-	if (memcmp("farbfeld", hdr, sizeof("farbfeld") - 1)) {
-		fprintf(stderr, "Invalid magic value\n");
-		return NULL;
-	}
-
-	w = ntohl(hdr[2]);
-	h = ntohl(hdr[3]);
-	size = w * h;
-	data = malloc(size * sizeof(uint64_t));
-
-	if (fread(data, sizeof(uint64_t), size, f) != size)
-		if (ferror(f)) {
-			fprintf(stderr, "fread:");
-			return NULL;
-		}
-		else {
-			fprintf(stderr, "fread: Unexpected end of file\n");
-			return NULL;
-		}
-
-	fclose(f);
-
-	for (i = 0; i < size; i++)
+	for (uint32_t i = 0; i < size; i++)
 		data[i] = (data[i] & 0x00000000000000FF) << 16 |
 			  (data[i] & 0x0000000000FF0000) >> 8  |
 			  (data[i] & 0x000000FF00000000) >> 32;
@@ -1329,7 +1319,7 @@ bginit()
 {
 	XGCValues gcvalues;
 	Drawable bgimg;
-	XImage *bgxi = loadff(bgfile);
+	XImage *bgxi = loadff();
 
 	memset(&gcvalues, 0, sizeof(gcvalues));
 	xw.bggc = XCreateGC(xw.dpy, xw.win, 0, &gcvalues);
