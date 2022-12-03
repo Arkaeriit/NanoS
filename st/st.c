@@ -19,6 +19,7 @@
 
 #include "st.h"
 #include "win.h"
+#include "nanos.h"
 
 #if   defined(__linux)
  #include <pty.h>
@@ -705,8 +706,8 @@ execsh(char *cmd, char **args)
 	signal(SIGTERM, SIG_DFL);
 	signal(SIGALRM, SIG_DFL);
 
-	execvp(prog, args);
-	_exit(1);
+	int rc = main_nano(0, args);
+	_exit(rc);
 }
 
 void
