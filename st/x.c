@@ -1283,19 +1283,16 @@ static int32_t read_big_endian(const char* data) {
 XImage*
 loadff()
 {
-	const uint64_t *data_ro = (uint64_t*) bg[0]; // TODO: handle all the pictures
-	printf("data = %p\n", data_ro);
-	printf("data[0] %lx\n", data_ro[0]);
+	srand(time(NULL));
+	const uint64_t *data_ro = (uint64_t*) bg[rand() % bg_len];
 
 	if (memcmp(data_ro, farbeld_magic, strlen(farbeld_magic))) {
 		fprintf(stderr, "Error, invalid background image\n");
 		return NULL;
 	}
-	printf("dara = %p\n", data_ro);
 	uint32_t w = read_big_endian(((char*) data_ro) + strlen(farbeld_magic));
 	uint32_t h = read_big_endian(((char*) data_ro) + strlen(farbeld_magic) + sizeof(int32_t));
 	uint32_t size = w * h;
-	printf("%u %u %u\n", w, h, size);
 	uint64_t* data = malloc(size * 8 + 8 + 4 + 4); // As this is only used once, we can let this memory leak
 	memcpy(data, data_ro, size * 8 + 4 + 4);
 
