@@ -578,7 +578,7 @@ void finish(void)
 }
 
 /* Make nano die gracefully. */
-void die(const char *msg, ...)
+void die_nano(const char *msg, ...)
 {
     va_list ap;
 
@@ -1121,7 +1121,7 @@ void finish_stdin_pager(void)
 
     ttystdin = open("/dev/tty", O_RDONLY);
     if (!ttystdin)
-	die(_("Couldn't reopen stdin from keyboard, sorry\n"));
+	die_nano(_("Couldn't reopen stdin from keyboard, sorry\n"));
 
     dup2(ttystdin,0);
     close(ttystdin);
@@ -1219,7 +1219,7 @@ void signal_init(void)
 /* Handler for SIGHUP (hangup) and SIGTERM (terminate). */
 RETSIGTYPE handle_hupterm(int signal)
 {
-    die(_("Received SIGHUP or SIGTERM\n"));
+    die_nano(_("Received SIGHUP or SIGTERM\n"));
 }
 
 /* Handler for SIGTSTP (suspend). */
@@ -1894,7 +1894,7 @@ void do_output(char *output, size_t output_len, bool allow_cntrls)
 	update_line(openfile->current, openfile->current_x);
 }
 
-int main(int argc, char **argv)
+int main_nano(int argc, char **argv)
 {
     int optchr;
     ssize_t startline = 0, startcol = 0;

@@ -22,7 +22,7 @@
 #ifndef NANO_H
 #define NANO_H 1
 
-#include <config.h>
+#include <config_nano.h>
 
 #ifdef NEED_XOPEN_SOURCE_EXTENDED
 #ifndef _XOPEN_SOURCE_EXTENDED

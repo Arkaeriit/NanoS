@@ -20,7 +20,7 @@ char *argv0;
 #include "st.h"
 #include "win.h"
 
-/* types used in config.h */
+/* types used in config_st.h */
 typedef struct {
 	uint mod;
 	KeySym keysym;
@@ -50,7 +50,7 @@ typedef struct {
 #define XK_NO_MOD     0
 #define XK_SWITCH_MOD (1<<13|1<<14)
 
-/* function definitions used in config.h */
+/* function definitions used in config_st.h */
 static void clipcopy(const Arg *);
 static void clippaste(const Arg *);
 static void numlock(const Arg *);
@@ -60,8 +60,8 @@ static void zoomabs(const Arg *);
 static void zoomreset(const Arg *);
 static void ttysend(const Arg *);
 
-/* config.h for applying patches and the configuration. */
-#include "config.h"
+/* config_st.h for applying patches and the configuration. */
+#include "config_st.h"
 
 /* XEMBED messages */
 #define XEMBED_FOCUS_IN  4
@@ -808,9 +808,9 @@ xloadcols(void)
 	for (i = 0; i < dc.collen; i++)
 		if (!xloadcolor(i, NULL, &dc.col[i])) {
 			if (colorname[i])
-				die("could not allocate color '%s'\n", colorname[i]);
+				die_st("could not allocate color '%s'\n", colorname[i]);
 			else
-				die("could not allocate color %d\n", i);
+				die_st("could not allocate color %d\n", i);
 		}
 	loaded = 1;
 }
@@ -992,7 +992,7 @@ xloadfonts(const char *fontstr, double fontsize)
 		pattern = FcNameParse((const FcChar8 *)fontstr);
 
 	if (!pattern)
-		die("can't open font %s\n", fontstr);
+		die_st("can't open font %s\n", fontstr);
 
 	if (fontsize > 1) {
 		FcPatternDel(pattern, FC_PIXEL_SIZE);
@@ -1018,7 +1018,7 @@ xloadfonts(const char *fontstr, double fontsize)
 	}
 
 	if (xloadfont(&dc.font, pattern))
-		die("can't open font %s\n", fontstr);
+		die_st("can't open font %s\n", fontstr);
 
 	if (usedfontsize < 0) {
 		FcPatternGetDouble(dc.font.match->pattern,
@@ -1035,17 +1035,17 @@ xloadfonts(const char *fontstr, double fontsize)
 	FcPatternDel(pattern, FC_SLANT);
 	FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ITALIC);
 	if (xloadfont(&dc.ifont, pattern))
-		die("can't open font %s\n", fontstr);
+		die_st("can't open font %s\n", fontstr);
 
 	FcPatternDel(pattern, FC_WEIGHT);
 	FcPatternAddInteger(pattern, FC_WEIGHT, FC_WEIGHT_BOLD);
 	if (xloadfont(&dc.ibfont, pattern))
-		die("can't open font %s\n", fontstr);
+		die_st("can't open font %s\n", fontstr);
 
 	FcPatternDel(pattern, FC_SLANT);
 	FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ROMAN);
 	if (xloadfont(&dc.bfont, pattern))
-		die("can't open font %s\n", fontstr);
+		die_st("can't open font %s\n", fontstr);
 
 	FcPatternDestroy(pattern);
 }
@@ -1136,13 +1136,13 @@ xinit(int cols, int rows)
 	XColor xmousefg, xmousebg;
 
 	if (!(xw.dpy = XOpenDisplay(NULL)))
-		die("can't open display\n");
+		die_st("can't open display\n");
 	xw.scr = XDefaultScreen(xw.dpy);
 	xw.vis = XDefaultVisual(xw.dpy, xw.scr);
 
 	/* font */
 	if (!FcInit())
-		die("could not init fontconfig.\n");
+		die_st("could not init fontconfig.\n");
 
 	usedfont = (opt_font == NULL)? font : opt_font;
 	xloadfonts(usedfont, 0);
@@ -1346,7 +1346,7 @@ xmakeglyphfontspecs(XftGlyphFontSpec *specs, const Glyph *glyphs, int len, int x
 			frc[frclen].font = XftFontOpenPattern(xw.dpy,
 					fontpattern);
 			if (!frc[frclen].font)
-				die("XftFontOpenPattern failed seeking fallback font: %s\n",
+				die_st("XftFontOpenPattern failed seeking fallback font: %s\n",
 					strerror(errno));
 			frc[frclen].flags = frcflags;
 			frc[frclen].unicodep = rune;
@@ -1858,7 +1858,7 @@ kpress(XEvent *ev)
 		}
 	}
 
-	/* 2. custom keys from config.h */
+	/* 2. custom keys from config_st.h */
 	if ((customkey = kmap(ksym, e->state))) {
 		ttywrite(customkey, strlen(customkey), 1);
 		return;
@@ -1955,7 +1955,7 @@ run(void)
 		if (pselect(MAX(xfd, ttyfd)+1, &rfd, NULL, NULL, tv, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
-			die("select failed: %s\n", strerror(errno));
+			die_st("select failed: %s\n", strerror(errno));
 		}
 		clock_gettime(CLOCK_MONOTONIC, &now);
 
@@ -2017,7 +2017,7 @@ run(void)
 void
 usage(void)
 {
-	die("usage: %s [-aiv] [-c class] [-f font] [-g geometry]"
+	die_st("usage: %s [-aiv] [-c class] [-f font] [-g geometry]"
 	    " [-n name] [-o file]\n"
 	    "          [-T title] [-t title] [-w windowid]"
 	    " [[-e] command [args ...]]\n"
@@ -2028,7 +2028,7 @@ usage(void)
 }
 
 int
-main(int argc, char *argv[])
+main_st(int argc, char **argv)
 {
 	xw.l = xw.t = 0;
 	xw.isfixed = False;
@@ -2072,7 +2072,7 @@ main(int argc, char *argv[])
 		opt_embed = EARGF(usage());
 		break;
 	case 'v':
-		die("%s " VERSION "\n", argv0);
+		die_st("%s " VERSION "\n", argv0);
 		break;
 	default:
 		usage();

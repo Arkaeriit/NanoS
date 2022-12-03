@@ -1438,7 +1438,7 @@ void init_operating_dir(void)
 
     /* If the operating directory is inaccessible, fail. */
     if (full_operating_dir == NULL || chdir(full_operating_dir) == -1)
-	die(_("Invalid operating directory\n"));
+	die_nano(_("Invalid operating directory\n"));
 
     snuggly_fit(&full_operating_dir);
 }

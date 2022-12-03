@@ -77,7 +77,7 @@ typedef union {
 	const char *s;
 } Arg;
 
-void die(const char *, ...);
+void die_st(const char *, ...);
 void redraw(void);
 void draw(void);
 

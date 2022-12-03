@@ -1,5 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 
+#define VERSION "0.9"
+#warning ooops
+
 /*
  * appearance
  *
