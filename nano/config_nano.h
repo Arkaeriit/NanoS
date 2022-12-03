@@ -26,6 +26,7 @@
 /* Define this if your system has sufficient UTF-8 support. */
 #define ENABLE_UTF8 1
 
+#define HAVE_USE_DEFAULT_COLORS
 
 #endif
 

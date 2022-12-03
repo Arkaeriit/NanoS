@@ -12,6 +12,14 @@ static char *font = "IBM Plex Mono:pixelsize=16:antialias=true:autohint=true";
 static int borderpx = 2;
 
 /*
+ * background image
+ * expects farbfeld format
+ * pseudo transparency fixes coordinates to the screen origin
+ */
+static const char *bgfile = "/home/mbouillot/dev/perso/nanos/pictures/bg1.ff";
+static const int pseudotransparency = 0;
+
+/*
  * What program is execed by st depends of these precedence rules:
  * 1: program passed with -e
  * 2: scroll and/or utmp
