@@ -1,0 +1,3 @@
+*.o
+nanos.bin
+pictures/bg.c
