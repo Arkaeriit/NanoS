@@ -1,3 +1,4 @@
+#include "stdio.h"
 #include "bg.h"
 #include "time.h"
 #include "string.h"
@@ -124,6 +125,7 @@ static uint8_t* farbfeld_pad(const uint8_t* pic, uint32_t pixels_to_add, bool ex
 static uint8_t* farbfeld_resize(const uint8_t* pic, uint32_t width, uint32_t height) {
 	uint32_t old_width = read_big_endian(pic + WIDTH_OFFSET);
 	uint32_t old_height = read_big_endian(pic + HEIGHT_OFFSET);
+	printf("ooo %i %i\n", width, height);
 	printf("%lx %lx\n", ((uint64_t*)pic)[0], ((uint64_t*)pic)[1]);
 	printf("ow %i oh %i\n", old_width, old_height);
 	double scaling_factor = (double) width / (double) old_width; // Try to use the width as scaling reference
@@ -145,24 +147,26 @@ static uint8_t* farbfeld_resize(const uint8_t* pic, uint32_t width, uint32_t hei
 		expand_in_row = false;
 	}
 	uint8_t* ret = farbfeld_pad(scaled, size_diff, expand_in_row);
+	printf("  >>>> %p\n", ret);
 
 	free(scaled);
 	return ret;
+	/*
+	printf("  >>>> %p\n", scaled);
+	return scaled;
+	*/
 }
 
 /*
  * Return a background with the correct dimentions.
- * All the memory is managed by the function
  */
 uint8_t* picture_get_bg(uint32_t width, uint32_t height) {
 	const uint8_t* origin = bg[get_bg_index()];
 	printf("origine %p index %i\n", origin, get_bg_index());
 	printf("<%s>\n", origin);
 
-	static uint8_t* ret = NULL;
-	free(ret);
-
-	ret = farbfeld_resize(origin, width, height);
+	uint8_t* ret = farbfeld_resize(origin, width, height); // TODO Fix memory leak
+	printf(">>>>>> %p\n", ret);
 	return ret;
 }
 

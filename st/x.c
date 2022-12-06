@@ -758,6 +758,7 @@ cresize(int width, int height)
 	tresize(col, row);
 	xresize(col, row);
 	ttyresize(win.tw, win.th);
+	bginit();
 }
 
 void
@@ -1280,26 +1281,26 @@ static int32_t read_big_endian(const char* data) {
 /*
  * load farbfeld file to XImage
  */
+#include "pictures.h"
+
 XImage*
 loadff()
 {
-	srand(time(NULL));
-	const uint64_t *data_ro = (uint64_t*) bg[rand() % bg_len];
+	uint64_t* data = picture_get_bg(win.w, win.h);
+	printf("   >>> %p\n", data);
 
-	if (memcmp(data_ro, farbeld_magic, strlen(farbeld_magic))) {
-		fprintf(stderr, "Error, invalid background image\n");
-		return NULL;
-	}
-	uint32_t w = read_big_endian(((char*) data_ro) + strlen(farbeld_magic));
-	uint32_t h = read_big_endian(((char*) data_ro) + strlen(farbeld_magic) + sizeof(int32_t));
+	printf("^^\n");
+	uint32_t w = read_big_endian(((char*) data) + strlen(farbeld_magic));
+	printf("~~\n");
+	uint32_t h = read_big_endian(((char*) data) + strlen(farbeld_magic) + sizeof(int32_t));
 	uint32_t size = w * h;
-	uint64_t* data = malloc(size * 8 + 8 + 4 + 4); // As this is only used once, we can let this memory leak
-	memcpy(data, data_ro, size * 8 + 4 + 4);
+	printf("%i\n", size);
 
 	for (uint32_t i = 0; i < size; i++)
 		data[i] = (data[i] & 0x00000000000000FF) << 16 |
 			  (data[i] & 0x0000000000FF0000) >> 8  |
 			  (data[i] & 0x000000FF00000000) >> 32;
+	printf("vv\n");
 
 	XImage *xi = XCreateImage(xw.dpy, DefaultVisual(xw.dpy, xw.scr),
 	                            DefaultDepth(xw.dpy, xw.scr), ZPixmap, 0,

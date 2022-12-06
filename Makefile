@@ -4,7 +4,7 @@ X11INC = /usr/X11R6/include
 X11LIB = /usr/X11R6/lib
 PKG_CONFIG = pkg-config
 
-CFLAGS := -I. -I./nano/ -I./st/ -I./pictures/ -g -O2 -Wall -I$(X11INC) $(shell $(PKG_CONFIG) --cflags fontconfig) $(shell $(PKG_CONFIG) --cflags freetype2)
+CFLAGS := -I. -I./nano/ -I./st/ -I./pictures/ -g -O0 -Wall -I$(X11INC) $(shell $(PKG_CONFIG) --cflags fontconfig) $(shell $(PKG_CONFIG) --cflags freetype2)
 LDFLAGS := -lncursesw -I$(X11INC) -L$(X11LIB) -lm -lX11 -lutil -lXft $(shell $(PKG_CONFIG) --libs fontconfig) $(shell $(PKG_CONFIG) --libs freetype2)
 ifeq ($(OS),Linux)
 	LDFLAGS += -lrt
