@@ -1,3 +1,5 @@
 *.o
-nanos.bin
+*.bin
 pictures/bg.c
+test-pictures.ff
+test-pictures.png

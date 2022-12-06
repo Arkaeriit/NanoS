@@ -14,7 +14,7 @@ C_SRC += $(addprefix nano/, $(NANO_C_SRC))
 ST_C_SRC := st.c x.c
 C_SRC += $(addprefix st/, $(ST_C_SRC))
 
-PICTURES_C_SRC = bg.c
+PICTURES_C_SRC = bg.c pictures.c
 C_SRC += $(addprefix pictures/, $(PICTURES_C_SRC))
 
 C_OBJS := $(C_SRC:%.c=%.o)
@@ -58,4 +58,16 @@ clean :
 	$(RM) $(C_OBJS)
 	$(RM) $(TARGET).bin
 	$(RM) pictures/bg.c
+	$(RM) test-pictures.bin
+	$(RM) test-pictures.ff
+	$(RM) test-pictures.png
+
+test-pictures.ff : test-pictures.bin
+	./test-pictures.bin
+
+test-pictures.png : test-pictures.ff
+	ff2png < $< > $@
+
+test-pictures.bin : pictures/pictures.c
+	$(CC) $^ $(CFLAGS) -Wextra -Werror -DTEST_PICTURES_C -o $@
 
