@@ -41,14 +41,18 @@ all : $(TARGET).bin
 
 BG_COUNT := $(shell ls pictures/bg*.ff | wc -l)
 
-ifeq ($(OS),Darwin) # On MacOS, ld can not put the content of a binary file into an object file. Thus, we need to embed the binary data into a .c file
 pictures/bg.c : pictures/*.ff
 	echo "" > $@
 	for i in $$(seq 1 $(BG_COUNT)); \
 		do xxd -i pictures/bg$$i.ff >> $@; \
 	done
+ifeq ($(OS),Darwin)
 	sed -i ".bak" -e "s:unsigned int.*::" $@
 	sed -i ".bak" -e "s:unsigned:static const unsigned:" $@
+else
+	sed -i -e "s:unsigned int.*::" $@
+	sed -i -e "s:unsigned:static const unsigned:" $@
+endif
 	echo "static const unsigned char* _bg[] = {" >> $@
 	for i in $$(seq 1 $(BG_COUNT)); \
 		do printf "pictures_bg%i_ff,\n" $$i >> $@; \
@@ -56,27 +60,28 @@ pictures/bg.c : pictures/*.ff
 	echo "};" >> $@
 	echo "const unsigned char** bg = &_bg[0];" >> $@
 	echo "const unsigned int bg_len = $(BG_COUNT);" >> $@
-else # On other OS, it is way faster to embed the binary into an object file.
-BG_LIST  := $(shell ls pictures/bg*.ff)
-BG_OBJS  := $(BG_LIST:%.ff=%.o)
 
-%.o : %.ff
-	ld -r -b binary $< -o $@
+# Alternative way to do so that is faster but need debugging
+#BG_LIST  := $(shell ls pictures/bg*.ff)
+#BG_OBJS  := $(BG_LIST:%.ff=%.o)
 
-pictures/bg.c : $(BG_OBJS)
-	echo "" > $@
-	for i in $$(seq 1 $(BG_COUNT)); \
-		do size=$$(nm pictures/bg$$i.o | grep -F size | cut -d " " -f 1); \
-		printf "const unsigned char binary_pictures_bg%i_ff_start[0x%s];\n" $$i $$size >> $@; \
-	done
-	echo "static const unsigned char* _bg[] = {" >> $@
-	for i in $$(seq 1 $(BG_COUNT)); \
-		do printf "&binary_pictures_bg%i_ff_start[0],\n" $$i >> $@; \
-	done
-	echo "};" >> $@
-	echo "const unsigned char** bg = &_bg[0];" >> $@
-	echo "const unsigned int bg_len = $(BG_COUNT);" >> $@
-endif
+#%.o : %.ff
+	#ld -r -b binary $< -o $@
+
+#pictures/bg.c : $(BG_OBJS)
+	#echo "" > $@
+	#for i in $$(seq 1 $(BG_COUNT)); \
+		#do size=$$(nm pictures/bg$$i.o | grep -F size | cut -d " " -f 1); \
+		#printf "const unsigned char binary_pictures_bg%i_ff_start[0x%s];\n" $$i $$size >> $@; \
+	#done
+	#echo "static const unsigned char* _bg[] = {" >> $@
+	#for i in $$(seq 1 $(BG_COUNT)); \
+		#do printf "&binary_pictures_bg%i_ff_start[0],\n" $$i >> $@; \
+	#done
+	#echo "};" >> $@
+	#echo "const unsigned char** bg = &_bg[0];" >> $@
+	#echo "const unsigned int bg_len = $(BG_COUNT);" >> $@
+#endif
 
 OBJS := $(C_OBJS) $(BG_OBJS)
 
