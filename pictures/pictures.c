@@ -1,8 +1,9 @@
 #include "bg.h"
-#include "pictures.h"
+#include "time.h"
 #include "string.h"
 #include "stdlib.h"
-#include "time.h"
+#include "stdbool.h"
+#include "pictures.h"
 
 #define farbeld_magic  "farbfeld"
 #define WIDTH_OFFSET   strlen(farbeld_magic)
@@ -43,6 +44,7 @@ static uint8_t* farbfeld_init(uint32_t width, uint32_t height) {
 }
 
 
+#ifndef TEST_PICTURES_C
 /*
  * Get the index of the desired background picture.
  * Choose it once randomly and then return always the same.
@@ -55,6 +57,7 @@ static int get_bg_index(void) {
 	}
 	return ret;
 }
+#endif
 
 /*
  * Scale a farbfeld picture by the desired factor.
@@ -79,6 +82,37 @@ static uint8_t* farbfeld_scale(const uint8_t* pic, double scale) {
 			((uint64_t*) (ret + PICTURE_OFFSET))[target_offset] = ((uint64_t*) (pic + PICTURE_OFFSET))[source_offset];
 		}
 	}
+	return ret;
+}
+
+/*
+ * Add padding to a picture in the desired axis.
+ * The color of the padding is selected from the edge of the picture.
+ */
+static uint8_t* farbfeld_pad(const uint8_t* pic, uint32_t pixels_to_add, bool expand_in_row) {
+	uint32_t old_width = read_big_endian(pic + WIDTH_OFFSET);
+	uint32_t old_height = read_big_endian(pic + HEIGHT_OFFSET);
+	uint32_t new_width = old_width + (expand_in_row ? pixels_to_add : 0);
+	uint32_t new_height = old_height + (expand_in_row ? 0 : pixels_to_add);
+	uint8_t* ret = farbfeld_init(new_width, new_height);
+
+	for (uint32_t width=0; width<new_width; width++) {
+		for (uint32_t height=0; height<new_height; height++) {
+			uint64_t target_offset = height * new_width + width;
+			uint32_t source_width = (expand_in_row ?
+									  (width < pixels_to_add / 2 ? 0
+									    : (width > old_width + pixels_to_add / 2 - 1 ? old_width - 1 : width - pixels_to_add / 2)) : width);
+
+			uint32_t source_height = (expand_in_row ? height :
+					                   (height < pixels_to_add / 2 ? 0 :
+										 (height > old_height + pixels_to_add / 2 - 1 ? old_height - 1
+										   : height - pixels_to_add / 2)));
+			uint64_t source_offset = source_height * old_width + source_width;
+
+			((uint64_t*) (ret + PICTURE_OFFSET))[target_offset] = ((uint64_t*) (pic + PICTURE_OFFSET))[source_offset];
+		}
+	}
+
 	return ret;
 }
 
@@ -127,12 +161,11 @@ static uint8_t* read_bin_file(const char* filename) {
 }
 
 int main(void) {
-	int _ = get_bg_index(); // Prevent warning about unused functions
-	(void) _;
-
 	uint8_t* origin = read_bin_file("./pictures/mire.ff");
 	uint8_t* sized = farbfeld_scale(origin, 0.5);
-	farbfeld_write(sized, "test-pictures.ff");
+	uint8_t* padded = farbfeld_pad(sized, 300, true);
+	farbfeld_write(padded, "test-pictures.ff");
+	free(padded);
 	free(sized);
 	free(origin);
 	return 0;
