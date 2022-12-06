@@ -35,27 +35,33 @@ all : $(TARGET).bin
 	$(CC) -c $< $(CFLAGS) -o $@
 
 BG_COUNT := $(shell ls pictures/bg*.ff | wc -l)
+BG_LIST  := $(shell ls pictures/bg*.ff)
+BG_OBJS  := $(BG_LIST:%.ff=%.o)
 
-pictures/bg.c : pictures/*.ff
+%.o : %.ff
+	ld -r -b binary $< -o $@
+
+pictures/bg.c : pictures/*.ff $(BG_OBJS)
 	echo "" > $@
 	for i in $$(seq 1 $(BG_COUNT)); \
-		do xxd -i pictures/bg$$i.ff >> $@; \
+		do size=$$(nm pictures/bg$$i.o | grep -F size | cut -d " " -f 1); \
+		printf "const unsigned char binary_pictures_bg%i_ff_start[0x%s];\n" $$i $$size >> $@; \
 	done
-	sed -i $@ -e "s:unsigned int.*::"
-	sed -i $@ -e "s:unsigned:static const unsigned:"
 	echo "static const unsigned char* _bg[] = {" >> $@
 	for i in $$(seq 1 $(BG_COUNT)); \
-		do printf "pictures_bg%i_ff,\n" $$i >> $@; \
+		do printf "&binary_pictures_bg%i_ff_start[0],\n" $$i >> $@; \
 	done
 	echo "};" >> $@
 	echo "const unsigned char** bg = &_bg[0];" >> $@
 	echo "const unsigned int bg_len = $(BG_COUNT);" >> $@
 
-$(TARGET).bin : $(C_OBJS)
-	$(CC) $(C_OBJS) $(LDFLAGS) -o $@
+OBJS := $(C_OBJS) $(BG_OBJS)
+
+$(TARGET).bin : $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
 clean : 
-	$(RM) $(C_OBJS)
+	$(RM) $(OBJS)
 	$(RM) $(TARGET).bin
 	$(RM) pictures/bg.c
 	$(RM) test-pictures.bin
