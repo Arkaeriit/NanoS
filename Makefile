@@ -1,9 +1,14 @@
+OS := $(shell uname -s)
+
 X11INC = /usr/X11R6/include
 X11LIB = /usr/X11R6/lib
 PKG_CONFIG = pkg-config
 
 CFLAGS := -I. -I./nano/ -I./st/ -I./pictures/ -g -O2 -Wall -I$(X11INC) $(shell $(PKG_CONFIG) --cflags fontconfig) $(shell $(PKG_CONFIG) --cflags freetype2)
-LDFLAGS := -lncursesw -I$(X11INC) -L$(X11LIB) -lm -lrt -lX11 -lutil -lXft $(shell $(PKG_CONFIG) --libs fontconfig) $(shell $(PKG_CONFIG) --libs freetype2)
+LDFLAGS := -lncursesw -I$(X11INC) -L$(X11LIB) -lm -lX11 -lutil -lXft $(shell $(PKG_CONFIG) --libs fontconfig) $(shell $(PKG_CONFIG) --libs freetype2)
+ifeq ($(OS),Linux)
+	LDFLAGS += -lrt
+endif
 
 # Files lists
 C_SRC := nanos.c
@@ -35,13 +40,30 @@ all : $(TARGET).bin
 	$(CC) -c $< $(CFLAGS) -o $@
 
 BG_COUNT := $(shell ls pictures/bg*.ff | wc -l)
+
+ifeq ($(OS),Darwin) # On MacOS, ld can not put the content of a binary file into an object file. Thus, we need to embed the binary data into a .c file
+pictures/bg.c : pictures/*.ff
+	echo "" > $@
+	for i in $$(seq 1 $(BG_COUNT)); \
+		do xxd -i pictures/bg$$i.ff >> $@; \
+	done
+	sed -i ".bak" -e "s:unsigned int.*::" $@
+	sed -i ".bak" -e "s:unsigned:static const unsigned:" $@
+	echo "static const unsigned char* _bg[] = {" >> $@
+	for i in $$(seq 1 $(BG_COUNT)); \
+		do printf "pictures_bg%i_ff,\n" $$i >> $@; \
+	done
+	echo "};" >> $@
+	echo "const unsigned char** bg = &_bg[0];" >> $@
+	echo "const unsigned int bg_len = $(BG_COUNT);" >> $@
+else # On other OS, it is way faster to embed the binary into an object file.
 BG_LIST  := $(shell ls pictures/bg*.ff)
 BG_OBJS  := $(BG_LIST:%.ff=%.o)
 
 %.o : %.ff
 	ld -r -b binary $< -o $@
 
-pictures/bg.c : pictures/*.ff $(BG_OBJS)
+pictures/bg.c : $(BG_OBJS)
 	echo "" > $@
 	for i in $$(seq 1 $(BG_COUNT)); \
 		do size=$$(nm pictures/bg$$i.o | grep -F size | cut -d " " -f 1); \
@@ -54,6 +76,7 @@ pictures/bg.c : pictures/*.ff $(BG_OBJS)
 	echo "};" >> $@
 	echo "const unsigned char** bg = &_bg[0];" >> $@
 	echo "const unsigned int bg_len = $(BG_COUNT);" >> $@
+endif
 
 OBJS := $(C_OBJS) $(BG_OBJS)
 
