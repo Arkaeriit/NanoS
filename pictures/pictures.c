@@ -118,8 +118,35 @@ static uint8_t* farbfeld_pad(const uint8_t* pic, uint32_t pixels_to_add, bool ex
 
 /*
  * Resize a farbfeld picture to the required dimentions.
+ * Firstly, the picture is scaled so that one of its dimentions match
+ * the requirement and that it fully fits inside of the requirements.
+ * Then, it is padded to fit.
  */
-//static uint8_t* farbfeld_resize(const uint8_t* pic, uint32_t width, uint32_t height);
+static uint8_t* farbfeld_resize(const uint8_t* pic, uint32_t width, uint32_t height) {
+	uint32_t old_width = read_big_endian(pic + WIDTH_OFFSET);
+	uint32_t old_height = read_big_endian(pic + HEIGHT_OFFSET);
+	double scaling_factor = (double) width / (double) old_width; // Try to use the width as scaling reference
+	if (old_height * scaling_factor > height) {
+		scaling_factor = (double) height / (double) old_height; // If not working well, use the height as reference
+	}
+	uint8_t* scaled = farbfeld_scale(pic, scaling_factor);
+
+	uint32_t intermediate_width = read_big_endian(scaled + WIDTH_OFFSET);
+	uint32_t intermediate_height = read_big_endian(scaled + HEIGHT_OFFSET);
+	uint32_t size_diff;
+	bool expand_in_row;
+	if (abs((int32_t) intermediate_width - (int32_t) width) > abs((int32_t)intermediate_height - (int32_t)height)) {
+		size_diff = width - intermediate_width;
+		expand_in_row = true;
+	} else {
+		size_diff = height - intermediate_height;
+		expand_in_row = false;
+	}
+	uint8_t* ret = farbfeld_pad(scaled, size_diff, expand_in_row);
+
+	free(scaled);
+	return ret;
+}
 
 #ifdef TEST_PICTURES_C
 #include "stdio.h"
@@ -162,10 +189,8 @@ static uint8_t* read_bin_file(const char* filename) {
 
 int main(void) {
 	uint8_t* origin = read_bin_file("./pictures/mire.ff");
-	uint8_t* sized = farbfeld_scale(origin, 0.5);
-	uint8_t* padded = farbfeld_pad(sized, 300, true);
-	farbfeld_write(padded, "test-pictures.ff");
-	free(padded);
+	uint8_t* sized = farbfeld_resize(origin, 300, 300);
+	farbfeld_write(sized, "test-pictures.ff");
 	free(sized);
 	free(origin);
 	return 0;
