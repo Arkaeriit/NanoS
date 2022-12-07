@@ -88,6 +88,8 @@ static uint8_t* farbfeld_scale(const uint8_t* pic, double scale) {
 /*
  * Add padding to a picture in the desired axis.
  * The color of the padding is selected from the edge of the picture.
+ * For horizontal padding, it is added on both sides equally. For vertical
+ * padding, it is only added to the top.
  */
 static uint8_t* farbfeld_pad(const uint8_t* pic, uint32_t pixels_to_add, bool expand_in_row) {
 	uint32_t old_width = read_big_endian(pic + WIDTH_OFFSET);
@@ -104,9 +106,8 @@ static uint8_t* farbfeld_pad(const uint8_t* pic, uint32_t pixels_to_add, bool ex
 									    : (width > old_width + pixels_to_add / 2 - 1 ? old_width - 1 : width - pixels_to_add / 2)) : width);
 
 			uint32_t source_height = (expand_in_row ? height :
-					                   (height < pixels_to_add / 2 ? 0 :
-										 (height > old_height + pixels_to_add / 2 - 1 ? old_height - 1
-										   : height - pixels_to_add / 2)));
+					                   (height < pixels_to_add ? 0 :
+										 (height - pixels_to_add)));
 			uint64_t source_offset = source_height * old_width + source_width;
 
 			((uint64_t*) (ret + PICTURE_OFFSET))[target_offset] = ((uint64_t*) (pic + PICTURE_OFFSET))[source_offset];
