@@ -1287,20 +1287,15 @@ XImage*
 loadff()
 {
 	uint64_t* data = picture_get_bg(win.w, win.h);
-	printf("   >>> %p\n", data);
 
-	printf("^^\n");
 	uint32_t w = read_big_endian(((char*) data) + strlen(farbeld_magic));
-	printf("~~\n");
 	uint32_t h = read_big_endian(((char*) data) + strlen(farbeld_magic) + sizeof(int32_t));
 	uint32_t size = w * h;
-	printf("%i\n", size);
 
 	for (uint32_t i = 0; i < size; i++)
 		data[i] = (data[i] & 0x00000000000000FF) << 16 |
 			  (data[i] & 0x0000000000FF0000) >> 8  |
 			  (data[i] & 0x000000FF00000000) >> 32;
-	printf("vv\n");
 
 	XImage *xi = XCreateImage(xw.dpy, DefaultVisual(xw.dpy, xw.scr),
 	                            DefaultDepth(xw.dpy, xw.scr), ZPixmap, 0,
