@@ -256,7 +256,7 @@ xmalloc(size_t len)
 	void *p;
 
 	if (!(p = malloc(len)))
-		die_st("malloc: %s\n", strerror(errno));
+		die("malloc: %s\n", strerror(errno));
 
 	return p;
 }
@@ -265,7 +265,7 @@ void *
 xrealloc(void *p, size_t len)
 {
 	if ((p = realloc(p, len)) == NULL)
-		die_st("realloc: %s\n", strerror(errno));
+		die("realloc: %s\n", strerror(errno));
 
 	return p;
 }
@@ -276,7 +276,7 @@ xstrdup(const char *s)
 	char *p;
 
 	if ((p = strdup(s)) == NULL)
-		die_st("strdup: %s\n", strerror(errno));
+		die("strdup: %s\n", strerror(errno));
 
 	return p;
 }
@@ -667,9 +667,9 @@ execsh(char *cmd, char **args)
 	errno = 0;
 	if ((pw = getpwuid(getuid())) == NULL) {
 		if (errno)
-			die_st("getpwuid: %s\n", strerror(errno));
+			die("getpwuid: %s\n", strerror(errno));
 		else
-			die_st("who are you?\n");
+			die("who are you?\n");
 	}
 
 	if ((sh = getenv("SHELL")) == NULL)
@@ -717,15 +717,15 @@ sigchld(int a)
 	pid_t p;
 
 	if ((p = waitpid(pid, &stat, WNOHANG)) < 0)
-		die_st("waiting for pid %hd failed: %s\n", pid, strerror(errno));
+		die("waiting for pid %hd failed: %s\n", pid, strerror(errno));
 
 	if (pid != p)
 		return;
 
 	if (WIFEXITED(stat) && WEXITSTATUS(stat))
-		die_st("child exited with status %d\n", WEXITSTATUS(stat));
+		die("child exited with status %d\n", WEXITSTATUS(stat));
 	else if (WIFSIGNALED(stat))
-		die_st("child terminated due to signal %d\n", WTERMSIG(stat));
+		die("child terminated due to signal %d\n", WTERMSIG(stat));
 	_exit(0);
 }
 
@@ -736,13 +736,13 @@ stty(char **args)
 	size_t n, siz;
 
 	if ((n = strlen(stty_args)) > sizeof(cmd)-1)
-		die_st("incorrect stty parameters\n");
+		die("incorrect stty parameters\n");
 	memcpy(cmd, stty_args, n);
 	q = cmd + n;
 	siz = sizeof(cmd) - n;
 	for (p = args; p && (s = *p); ++p) {
 		if ((n = strlen(s)) > siz-1)
-			die_st("stty parameter length too long\n");
+			die("stty parameter length too long\n");
 		*q++ = ' ';
 		memcpy(q, s, n);
 		q += n;
@@ -770,7 +770,7 @@ ttynew(const char *line, char *cmd, const char *out, char **args)
 
 	if (line) {
 		if ((cmdfd = open(line, O_RDWR)) < 0)
-			die_st("open line '%s' failed: %s\n",
+			die("open line '%s' failed: %s\n",
 			    line, strerror(errno));
 		dup2(cmdfd, 0);
 		stty(args);
@@ -779,11 +779,11 @@ ttynew(const char *line, char *cmd, const char *out, char **args)
 
 	/* seems to work fine on linux, openbsd and freebsd */
 	if (openpty(&m, &s, NULL, NULL, NULL) < 0)
-		die_st("openpty failed: %s\n", strerror(errno));
+		die("openpty failed: %s\n", strerror(errno));
 
 	switch (pid = fork()) {
 	case -1:
-		die_st("fork failed: %s\n", strerror(errno));
+		die("fork failed: %s\n", strerror(errno));
 		break;
 	case 0:
 		close(iofd);
@@ -793,19 +793,19 @@ ttynew(const char *line, char *cmd, const char *out, char **args)
 		dup2(s, 1);
 		dup2(s, 2);
 		if (ioctl(s, TIOCSCTTY, NULL) < 0)
-			die_st("ioctl TIOCSCTTY failed: %s\n", strerror(errno));
+			die("ioctl TIOCSCTTY failed: %s\n", strerror(errno));
 		if (s > 2)
 			close(s);
 #ifdef __OpenBSD__
 		if (pledge("stdio getpw proc exec", NULL) == -1)
-			die_st("pledge\n");
+			die("pledge\n");
 #endif
 		execsh(cmd, args);
 		break;
 	default:
 #ifdef __OpenBSD__
 		if (pledge("stdio rpath tty proc", NULL) == -1)
-			die_st("pledge\n");
+			die("pledge\n");
 #endif
 		close(s);
 		cmdfd = m;
@@ -829,7 +829,7 @@ ttyread(void)
 	case 0:
 		exit(0);
 	case -1:
-		die_st("couldn't read from shell: %s\n", strerror(errno));
+		die("couldn't read from shell: %s\n", strerror(errno));
 	default:
 		buflen += ret;
 		written = twrite(buf, buflen, 0);
@@ -892,7 +892,7 @@ ttywriteraw(const char *s, size_t n)
 		if (pselect(cmdfd+1, &rfd, &wfd, NULL, NULL, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
-			die_st("select failed: %s\n", strerror(errno));
+			die("select failed: %s\n", strerror(errno));
 		}
 		if (FD_ISSET(cmdfd, &wfd)) {
 			/*
@@ -923,7 +923,7 @@ ttywriteraw(const char *s, size_t n)
 	return;
 
 write_error:
-	die_st("write error on tty: %s\n", strerror(errno));
+	die("write error on tty: %s\n", strerror(errno));
 }
 
 void
@@ -1605,7 +1605,7 @@ csihandle(void)
 	unknown:
 		fprintf(stderr, "erresc: unknown csi ");
 		csidump();
-		/* die_st(""); */
+		/* die(""); */
 		break;
 	case '@': /* ICH -- Insert <n> blank char */
 		DEFAULT(csiescseq.arg[0], 1);

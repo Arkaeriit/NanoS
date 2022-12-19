@@ -21,6 +21,7 @@ char *argv0;
 #include "st.h"
 #include "win.h"
 #include "bg.h"
+#include "nanos.h"
 
 /* types used in config_st.h */
 typedef struct {
@@ -825,9 +826,9 @@ xloadcols(void)
 	for (i = 0; i < dc.collen; i++)
 		if (!xloadcolor(i, NULL, &dc.col[i])) {
 			if (colorname[i])
-				die_st("could not allocate color '%s'\n", colorname[i]);
+				die("could not allocate color '%s'\n", colorname[i]);
 			else
-				die_st("could not allocate color %d\n", i);
+				die("could not allocate color %d\n", i);
 		}
 	loaded = 1;
 }
@@ -1009,7 +1010,7 @@ xloadfonts(const char *fontstr, double fontsize)
 		pattern = FcNameParse((const FcChar8 *)fontstr);
 
 	if (!pattern)
-		die_st("can't open font %s\n", fontstr);
+		die("can't open font %s\n", fontstr);
 
 	if (fontsize > 1) {
 		FcPatternDel(pattern, FC_PIXEL_SIZE);
@@ -1035,7 +1036,7 @@ xloadfonts(const char *fontstr, double fontsize)
 	}
 
 	if (xloadfont(&dc.font, pattern))
-		die_st("can't open font %s\n", fontstr);
+		die("can't open font %s\n", fontstr);
 
 	if (usedfontsize < 0) {
 		FcPatternGetDouble(dc.font.match->pattern,
@@ -1052,17 +1053,17 @@ xloadfonts(const char *fontstr, double fontsize)
 	FcPatternDel(pattern, FC_SLANT);
 	FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ITALIC);
 	if (xloadfont(&dc.ifont, pattern))
-		die_st("can't open font %s\n", fontstr);
+		die("can't open font %s\n", fontstr);
 
 	FcPatternDel(pattern, FC_WEIGHT);
 	FcPatternAddInteger(pattern, FC_WEIGHT, FC_WEIGHT_BOLD);
 	if (xloadfont(&dc.ibfont, pattern))
-		die_st("can't open font %s\n", fontstr);
+		die("can't open font %s\n", fontstr);
 
 	FcPatternDel(pattern, FC_SLANT);
 	FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ROMAN);
 	if (xloadfont(&dc.bfont, pattern))
-		die_st("can't open font %s\n", fontstr);
+		die("can't open font %s\n", fontstr);
 
 	FcPatternDestroy(pattern);
 }
@@ -1153,13 +1154,13 @@ xinit(int cols, int rows)
 	XColor xmousefg, xmousebg;
 
 	if (!(xw.dpy = XOpenDisplay(NULL)))
-		die_st("can't open display\n");
+		die("can't open display\n");
 	xw.scr = XDefaultScreen(xw.dpy);
 	xw.vis = XDefaultVisual(xw.dpy, xw.scr);
 
 	/* font */
 	if (!FcInit())
-		die_st("could not init fontconfig.\n");
+		die("could not init fontconfig.\n");
 
 	usedfont = (opt_font == NULL)? font : opt_font;
 	xloadfonts(usedfont, 0);
@@ -1438,7 +1439,7 @@ xmakeglyphfontspecs(XftGlyphFontSpec *specs, const Glyph *glyphs, int len, int x
 			frc[frclen].font = XftFontOpenPattern(xw.dpy,
 					fontpattern);
 			if (!frc[frclen].font)
-				die_st("XftFontOpenPattern failed seeking fallback font: %s\n",
+				die("XftFontOpenPattern failed seeking fallback font: %s\n",
 					strerror(errno));
 			frc[frclen].flags = frcflags;
 			frc[frclen].unicodep = rune;
@@ -2058,7 +2059,7 @@ run(void)
 		if (pselect(MAX(xfd, ttyfd)+1, &rfd, NULL, NULL, tv, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
-			die_st("select failed: %s\n", strerror(errno));
+			die("select failed: %s\n", strerror(errno));
 		}
 		clock_gettime(CLOCK_MONOTONIC, &now);
 
@@ -2120,7 +2121,7 @@ run(void)
 void
 usage(void)
 {
-	die_st("usage: %s [-aiv] [-c class] [-f font] [-g geometry]"
+	die("usage: %s [-aiv] [-c class] [-f font] [-g geometry]"
 	    " [-n name] [-o file]\n"
 	    "          [-T title] [-t title] [-w windowid]"
 	    " [[-e] command [args ...]]\n"
@@ -2175,7 +2176,7 @@ main_st(int argc, char **argv)
 		opt_embed = EARGF(usage());
 		break;
 	case 'v':
-		die_st("%s " VERSION "\n", argv0);
+		die("%s " VERSION "\n", argv0);
 		break;
 	default:
 		usage();

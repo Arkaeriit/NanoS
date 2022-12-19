@@ -20,6 +20,7 @@
  **************************************************************************/
 
 #include "proto.h"
+#include "nanos.h"
 
 #ifdef __linux__
 #include <sys/ioctl.h>

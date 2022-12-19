@@ -20,6 +20,7 @@
  **************************************************************************/
 
 #include "proto.h"
+#include "nanos.h"
 //#include "revision.h"
 
 #include <stdio.h>
@@ -1121,7 +1122,7 @@ void finish_stdin_pager(void)
 
     ttystdin = open("/dev/tty", O_RDONLY);
     if (!ttystdin)
-	die_nano(_("Couldn't reopen stdin from keyboard, sorry\n"));
+	die(_("Couldn't reopen stdin from keyboard, sorry\n"));
 
     dup2(ttystdin,0);
     close(ttystdin);
@@ -1219,7 +1220,7 @@ void signal_init(void)
 /* Handler for SIGHUP (hangup) and SIGTERM (terminate). */
 RETSIGTYPE handle_hupterm(int signal)
 {
-    die_nano(_("Received SIGHUP or SIGTERM\n"));
+    die(_("Received SIGHUP or SIGTERM\n"));
 }
 
 /* Handler for SIGTSTP (suspend). */
