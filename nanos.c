@@ -1,4 +1,5 @@
 #include "nanos.h"
+#include <stdio.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -13,7 +14,7 @@
 #define OPTION_FOR_ST(flag)                \
     else if(!strcmp(argv_in[i], flag)) {   \
         if (i == argc_in - 1) {            \
-            return 1;                      \
+            return MISSING_OPTION;         \
         }                                  \
         (*argv_st)[*argc_st] = argv_in[i]; \
         (*argc_st)++;                      \
@@ -23,13 +24,23 @@
         continue;                          \
     }                                       
 
+enum sort_arg_result {
+	OK = 0,
+	MISSING_OPTION,
+	VERSION,
+	HELP,
+};
 
-static int sort_args(int argc_in, char** argv_in, int* argc_st, char*** argv_st, int* argc_nano, char*** argv_nano) {
-	*argc_st = 0;
-	*argc_nano = 0;
-	for (int i=0; i<argc_in; i++) {
-		if (0) {
-			// Need a false entry for the following macros to work
+static enum sort_arg_result sort_args(int argc_in, char** argv_in, int* argc_st, char*** argv_st, int* argc_nano, char*** argv_nano) {
+	*argc_st = 1;
+	*argc_nano = 1;
+	(*argv_st)[0] = argv_in[0];
+	(*argv_nano)[0] = argv_in[0];
+	for (int i=1; i<argc_in; i++) {
+		if (!strcmp(argv_in[i], "help") || !strcmp(argv_in[i], "--help") || !strcmp(argv_in[i], "-help") || !strcmp(argv_in[i], "-h")) {
+			return HELP;
+		} else if (!strcmp(argv_in[i], "--version")) {
+			return VERSION;
 		}
 		FLAG_FOR_ST("-a")
 		FLAG_FOR_ST("-i")
@@ -46,7 +57,7 @@ static int sort_args(int argc_in, char** argv_in, int* argc_st, char*** argv_st,
 			(*argc_nano)++;
 		}
 	}
-	return 0;
+	return OK;
 }
 
 int argc_nano;
@@ -56,7 +67,19 @@ int main(int argc, char** argv) {
 	argv_nano = malloc(sizeof(char*) * argc);
 	char** argv_st = malloc(sizeof(char*) * argc);
 	int argc_st;
-	sort_args(argc, argv, &argc_st, &argv_st, &argc_nano, &argv_nano);
-	return main_st(argc_st, argv_st);
+	enum sort_arg_result sa_rc = sort_args(argc, argv, &argc_st, &argv_st, &argc_nano, &argv_nano);
+	switch (sa_rc) {
+		case OK:
+			return main_st(argc_st, argv_st);
+		case MISSING_OPTION:
+			fprintf(stderr, "Error, missing argument for option \"%s\".\n", argv[argc-1]);
+			return 1;
+		case VERSION:
+			printf("TODO: branding\n");
+			return 0;
+		case HELP:
+			printf("TODO: help\n");
+			return 0;
+	}
 }
 
