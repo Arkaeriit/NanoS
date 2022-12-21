@@ -12,6 +12,8 @@ void die_st(const char *msg, ...);
     die_st(__VA_ARGS__);   \
 } while(0)                  
 
+extern int argc_nano;
+extern char** argv_nano;
 
 #endif
 

@@ -706,7 +706,7 @@ execsh(char *cmd, char **args)
 	signal(SIGTERM, SIG_DFL);
 	signal(SIGALRM, SIG_DFL);
 
-	int rc = main_nano(0, args);
+	int rc = main_nano(argc_nano, argv_nano);
 	_exit(rc);
 }
 
