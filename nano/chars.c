@@ -21,10 +21,12 @@
 
 #include "proto.h"
 
+#define __USE_GNU
 #include <string.h>
 #include <ctype.h>
 
 #ifdef ENABLE_UTF8
+#define __USE_XOPEN
 #include <wchar.h>
 #include <wctype.h>
 

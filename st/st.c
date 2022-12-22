@@ -15,6 +15,8 @@
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
+
+#define __USE_XOPEN
 #include <wchar.h>
 
 #include "st.h"

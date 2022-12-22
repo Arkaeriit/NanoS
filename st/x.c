@@ -1287,7 +1287,7 @@ static int32_t read_big_endian(const char* data) {
 XImage*
 loadff()
 {
-	uint64_t* data = picture_get_bg(win.w, win.h);
+	uint64_t* data = (uint64_t*) picture_get_bg(win.w, win.h);
 
 	uint32_t w = read_big_endian(((char*) data) + strlen(farbeld_magic));
 	uint32_t h = read_big_endian(((char*) data) + strlen(farbeld_magic) + sizeof(int32_t));
