@@ -19,7 +19,7 @@ C_SRC += $(addprefix nano/, $(NANO_C_SRC))
 ST_C_SRC := st.c x.c
 C_SRC += $(addprefix st/, $(ST_C_SRC))
 
-PICTURES_C_SRC = bg.c pictures.c
+PICTURES_C_SRC = bg.c pictures.c nanorc.c
 C_SRC += $(addprefix pictures/, $(PICTURES_C_SRC))
 
 C_OBJS := $(C_SRC:%.c=%.o)
@@ -60,6 +60,27 @@ endif
 	echo "};" >> $@
 	echo "const unsigned char** bg = &_bg[0];" >> $@
 	echo "const unsigned int bg_len = $(BG_COUNT);" >> $@
+
+pictures/nanorc.c : pictures/*.nanorc
+	echo "" > $@
+	for i in $$(seq 1 $(BG_COUNT)); \
+		do xxd -i pictures/theme$$i.nanorc >> $@; \
+	done
+ifeq ($(OS),Darwin)
+	sed -i ".bak" -e "s:unsigned int.*::" $@
+	sed -i ".bak" -e "s:unsigned:static const unsigned:" $@
+	sed -i ".bak" -e "s:unsigned:static const unsigned:" $@
+else
+	sed -i -e "s:unsigned int.*::" $@
+	sed -i -e "s:unsigned:static const unsigned:" $@
+	sed -i -e "s:}:, 0x00 }:" $@
+endif
+	echo "static const unsigned char* _nanorc[] = {" >> $@
+	for i in $$(seq 1 $(BG_COUNT)); \
+		do printf "pictures_theme%i_nanorc,\n" $$i >> $@; \
+	done
+	echo "};" >> $@
+	echo "const unsigned char** nanorc = &_nanorc[0];" >> $@
 
 # Alternative way to do so that is faster but need debugging
 #BG_LIST  := $(shell ls pictures/bg*.ff)

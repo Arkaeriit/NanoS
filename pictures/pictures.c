@@ -2,13 +2,18 @@
 #include "time.h"
 #include "string.h"
 #include "stdlib.h"
+#include "nanorc.h"
 #include "stdbool.h"
-#include "pictures.h"
+
+#define __USE_GNU
+#include <stdio.h>
 
 #define farbeld_magic  "farbfeld"
 #define WIDTH_OFFSET   strlen(farbeld_magic)
 #define HEIGHT_OFFSET  WIDTH_OFFSET + sizeof(uint32_t)
 #define PICTURE_OFFSET HEIGHT_OFFSET + sizeof(uint32_t)
+
+#include "pictures.h"
 
 /*
  * Read a 4 byte big endian number
@@ -154,6 +159,88 @@ uint8_t* picture_get_bg(uint32_t width, uint32_t height) {
 
 	uint8_t* ret = farbfeld_resize(origin, width, height); // TODO Fix memory leak
 	return ret;
+}
+
+/*
+ * Return the foreground color of the theme
+ */
+#define stfg_beacon "stfg="
+unsigned int picture_get_fg(void) {
+	const char* theme = (const char*) nanorc[get_bg_index()];
+	for (size_t i=0; i<strlen(theme)-strlen(stfg_beacon); i++) {
+		if (!memcmp(stfg_beacon, theme+i, strlen(stfg_beacon))) {
+			for (size_t j=i+strlen(stfg_beacon); j<strlen(theme); j++) {
+				if (theme[j] < '0' || theme[j] > '9') {
+					char buff[j-i];
+					memset(buff, 0, j-i);
+					memcpy(buff, theme+i+strlen(stfg_beacon), j-i-strlen(stfg_beacon));
+					return atoi(buff);	
+				}
+			}
+			break;
+		}
+	}
+	return ~0;
+}
+
+/*
+ * Return the nano theme of the current background as a FILE*
+ */
+FILE* picture_get_nano_theme(void) {
+	ssize_t theme_read(void* _cookie, char* buf, size_t size) {
+		size_t* cookie = (size_t*) _cookie;
+		const char* theme = (const char*) nanorc[get_bg_index()];
+		ssize_t ret = 0;
+		FILE* f = fopen("log", "a");
+		fprintf(f, "bgi=%i, len=%li, size=%li\n", get_bg_index(), strlen((const char*)nanorc[get_bg_index()]), size);
+		for (size_t i=0; i<size; i++) {
+			fprintf(f, "i=%li; ret=%li; cookie=%li\n", i, ret, *cookie);
+			buf[i] = theme[i+ *cookie];
+			if (theme[i+ *cookie] == 0) {
+				break;
+			}
+			ret++;
+		}
+		*cookie = *cookie + ret;
+		fprintf(f, "\n\n\n");
+		fclose(f);
+		return ret;
+	}
+
+	int theme_seek(void* _cookie, __off64_t* offset, int whence) {
+		size_t* cookie = (size_t*) _cookie;
+		switch (whence) {
+			case SEEK_SET:
+				*cookie = *offset;
+				*offset = *cookie;
+				return 0;
+			case SEEK_CUR:
+				*offset = *cookie;
+				return 0;
+			case SEEK_END:
+				*cookie = strlen((const char*) nanorc[get_bg_index()]) + *offset;
+				*offset = *cookie;
+				return 0;
+			default:
+				return -1;
+		}
+	}
+
+	int free_cookie(void* cookie) {
+		free(cookie);
+		return 0;
+	}
+
+	cookie_io_functions_t cf = {
+		.read = theme_read,
+		.write = NULL,
+		.seek = theme_seek,
+		.close = free_cookie,
+	};
+
+	size_t* cookie = malloc(sizeof(size_t));
+	*cookie = 0;	
+	return fopencookie((void*) cookie, "r", cf);
 }
 
 #ifdef TEST_PICTURES_C

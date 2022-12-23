@@ -3,6 +3,9 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+#include "pictures.h"
+
+extern unsigned int defaultfg;
 
 #define FLAG_FOR_ST(flag)                  \
     else if(!strcmp(argv_in[i], flag)) {   \
@@ -70,6 +73,7 @@ int main(int argc, char** argv) {
 	enum sort_arg_result sa_rc = sort_args(argc, argv, &argc_st, &argv_st, &argc_nano, &argv_nano);
 	switch (sa_rc) {
 		case OK:
+			defaultfg = picture_get_fg();
 			return main_st(argc_st, argv_st);
 		case MISSING_OPTION:
 			fprintf(stderr, "Error, missing argument for option \"%s\".\n", argv[argc-1]);

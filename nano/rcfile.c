@@ -30,6 +30,8 @@
 #include <unistd.h>
 #include <ctype.h>
 
+#include "pictures.h"
+
 #ifndef DISABLE_NANORC
 
 #ifndef RCFILE_NAME
@@ -946,6 +948,9 @@ static void check_vitals_mapped(void)
     }
 }
 
+void parse_rcfile(FILE *rcstream, bool syntax_only) {
+}
+
 /* Parse the rcfile, once it has been opened successfully at rcstream,
  * and close it afterwards.  If syntax_only is TRUE, allow the file to
  * to contain only color syntax commands. */
@@ -1292,6 +1297,9 @@ void do_rcfiles(void)
 
     free(nanorc);
 
+	parse_rcfile(picture_get_nano_theme(), FALSE);
+
+	
     if (errors && !ISSET(QUIET) && !ISSET(NO_PAUSES)) {
 	errors = FALSE;
 	fprintf(stderr, _("\nPress Enter to continue starting nano.\n"));
