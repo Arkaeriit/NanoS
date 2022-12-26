@@ -2,14 +2,14 @@
 /* Terminal colors (16 first used in escape sequence) */
 static const char *theme1_st[] = {
 	/* 8 normal colors */
-	"black",
-	"red3",
-	"green3",
-	"yellow3",
-	"blue2",
-	"magenta3",
-	"cyan3",
-	"gray90",
+	"#101010",   // black (text)
+	"red3",      // red
+	"green3",    // green
+	"yellow3",   // yellow
+	"#5050A0",   // blue
+	"magenta3",  // magenta
+	"cyan3",     // cyan
+	"gray90",    // grey
 
 	/* 8 bright colors */
 	"gray50",

@@ -82,7 +82,7 @@ endif
 	echo "};" >> $@
 	echo "const unsigned char** nanorc = &_nanorc[0];" >> $@
 
-pictures/themes_st.c :
+pictures/themes_st.c : pictures/*.st.c
 	echo "" > $@
 	for i in $$(seq 1 $(BG_COUNT)); \
 		do cat $$(printf "pictures/theme%i.st.c" $$i) >> $@; \
