@@ -74,7 +74,9 @@ int main(int argc, char** argv) {
 	switch (sa_rc) {
 		case OK:
 			colorname = picture_get_st_theme();
-			return main_st(argc_st, argv_st);
+			int rc = main_st(argc_st, argv_st);
+			die("Exiting\n");
+			return rc;
 		case MISSING_OPTION:
 			fprintf(stderr, "Error, missing argument for option \"%s\".\n", argv[argc-1]);
 			return 1;
