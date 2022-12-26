@@ -948,19 +948,17 @@ static void check_vitals_mapped(void)
     }
 }
 
-void parse_rcfile(FILE *rcstream, bool syntax_only) {
-}
-
 /* Parse the rcfile, once it has been opened successfully at rcstream,
  * and close it afterwards.  If syntax_only is TRUE, allow the file to
  * to contain only color syntax commands. */
-void parse_rcfile(FILE *rcstream, bool syntax_only)
+typedef ssize_t (*getline_t)(char**restrict, size_t* restrict, void* restrict);
+static void _parse_rcfile(void *rcstream, bool syntax_only, getline_t _getline)
 {
     char *buf = NULL;
     ssize_t len;
     size_t n = 0;
 
-    while ((len = getline(&buf, &n, rcstream)) > 0) {
+    while ((len = _getline(&buf, &n, rcstream)) > 0) {
 	char *ptr, *keyword, *option;
 	int set = 0;
 	size_t i;
@@ -1237,10 +1235,49 @@ void parse_rcfile(FILE *rcstream, bool syntax_only)
 #endif
 
     free(buf);
-    fclose(rcstream);
     lineno = 0;
 
     return;
+}
+
+void parse_rcfile(FILE *rcstream, bool syntax_only) {
+	_parse_rcfile(rcstream, syntax_only, (getline_t) getline);
+    fclose(rcstream);
+}
+
+void parce_rcstring(const char* str, bool syntax_only) {
+	struct str_and_pnt {
+		const char* str;
+		size_t index;
+	};
+
+	ssize_t get_line_str(char** restrict ret, size_t* restrict size, void* restrict _str) {
+		if (*ret == NULL) {
+			*ret = malloc(4096);
+		}
+
+		struct str_and_pnt* str = _str;
+		*size = 0;
+		while (str->index < strlen(str->str)) {
+			printf("%p %p %p %p %p\n", ret, *ret, size, str, str->str);
+			(*ret)[*size] = str->str[str->index];
+			(*size)++;
+			if (str->str[str->index] == '\n') {
+				break;
+			}
+			(str->index)++;
+		}
+		(str->index)++;
+		(*ret)[*size] = 0;
+		return *size;	
+	}
+
+	struct str_and_pnt _str = {
+		.str = str,
+		.index = 0,
+	};
+
+	_parse_rcfile(&_str, syntax_only, get_line_str);
 }
 
 /* Read and interpret one of the two nanorc files. */
@@ -1297,7 +1334,7 @@ void do_rcfiles(void)
 
     free(nanorc);
 
-	parse_rcfile(picture_get_nano_theme(), FALSE);
+	parce_rcstring(picture_get_nano_theme(), FALSE);
 
 	
     if (errors && !ISSET(QUIET) && !ISSET(NO_PAUSES)) {
