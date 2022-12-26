@@ -1259,7 +1259,6 @@ void parce_rcstring(const char* str, bool syntax_only) {
 		struct str_and_pnt* str = _str;
 		*size = 0;
 		while (str->index < strlen(str->str)) {
-			printf("%p %p %p %p %p\n", ret, *ret, size, str, str->str);
 			(*ret)[*size] = str->str[str->index];
 			(*size)++;
 			if (str->str[str->index] == '\n') {
