@@ -67,8 +67,8 @@ int argc_nano;
 char** argv_nano;
 
 int main(int argc, char** argv) {
-	argv_nano = malloc(sizeof(char*) * argc);
-	char** argv_st = malloc(sizeof(char*) * argc);
+	argv_nano = calloc(1 + argc, sizeof(char*));
+	char** argv_st = calloc(1 + argc, sizeof(char*));
 	int argc_st;
 	enum sort_arg_result sa_rc = sort_args(argc, argv, &argc_st, &argv_st, &argc_nano, &argv_nano);
 	switch (sa_rc) {

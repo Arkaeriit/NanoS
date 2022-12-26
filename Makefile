@@ -125,6 +125,8 @@ clean :
 	$(RM) $(OBJS)
 	$(RM) $(TARGET).bin
 	$(RM) pictures/bg.c
+	$(RM) pictures/nanorc.c
+	$(RM) pictures/themes_st.c
 	$(RM) test-pictures.bin
 	$(RM) test-pictures.ff
 	$(RM) test-pictures.png
