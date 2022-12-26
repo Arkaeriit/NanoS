@@ -106,11 +106,11 @@ static uint8_t* farbfeld_pad(const uint8_t* pic, uint32_t pixels_to_add, bool ex
 		for (uint32_t height=0; height<new_height; height++) {
 			uint64_t target_offset = height * new_width + width;
 			uint32_t source_width = (expand_in_row ?
-									  (width < pixels_to_add / 2 ? 0
+									  (width <= pixels_to_add / 2 ? 1
 									    : (width > old_width + pixels_to_add / 2 - 1 ? old_width - 1 : width - pixels_to_add / 2)) : width);
 
 			uint32_t source_height = (expand_in_row ? height :
-					                   (height < pixels_to_add ? 0 :
+					                   (height <= pixels_to_add ? 1 :
 										 (height - pixels_to_add)));
 			uint64_t source_offset = source_height * old_width + source_width;
 
