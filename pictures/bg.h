@@ -1,8 +1,8 @@
 #ifndef BG_H
 #define BG_H
 
-const unsigned char ** bg;
-const unsigned int bg_len;
+extern const unsigned char ** bg;
+extern const unsigned int bg_len;
 
 #endif
 

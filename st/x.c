@@ -23,6 +23,8 @@ char *argv0;
 #include "bg.h"
 #include "nanos.h"
 
+const char **colorname;
+
 /* types used in config_st.h */
 typedef struct {
 	uint mod;
@@ -819,7 +821,8 @@ xloadcols(void)
 		for (cp = dc.col; cp < &dc.col[dc.collen]; ++cp)
 			XftColorFree(xw.dpy, xw.vis, xw.cmap, cp);
 	} else {
-		dc.collen = MAX(LEN(colorname), 256);
+		//dc.collen = MAX(LEN(colorname), 256);
+		dc.collen = 256;
 		dc.col = xmalloc(dc.collen * sizeof(Color));
 	}
 

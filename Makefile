@@ -19,7 +19,7 @@ C_SRC += $(addprefix nano/, $(NANO_C_SRC))
 ST_C_SRC := st.c x.c
 C_SRC += $(addprefix st/, $(ST_C_SRC))
 
-PICTURES_C_SRC = bg.c pictures.c nanorc.c
+PICTURES_C_SRC = bg.c pictures.c nanorc.c themes_st.c
 C_SRC += $(addprefix pictures/, $(PICTURES_C_SRC))
 
 C_OBJS := $(C_SRC:%.c=%.o)
@@ -36,7 +36,7 @@ RM := rm -rf
 
 all : $(TARGET).bin
 
-%.o : %.c st/config_st.h nano/config_nano.h pictures/bg.h
+%.o : %.c st/config_st.h nano/config_nano.h pictures/bg.h pictures/nanorc.h pictures/themes_st.h
 	$(CC) -c $< $(CFLAGS) -o $@
 
 BG_COUNT := $(shell ls pictures/bg*.ff | wc -l)
@@ -81,6 +81,18 @@ endif
 	done
 	echo "};" >> $@
 	echo "const unsigned char** nanorc = &_nanorc[0];" >> $@
+
+pictures/themes_st.c :
+	echo "" > $@
+	for i in $$(seq 1 $(BG_COUNT)); \
+		do cat $$(printf "pictures/theme%i.st.c" $$i) >> $@; \
+	done
+	echo "static const char** _themes_st[] = {" >> $@
+	for i in $$(seq 1 $(BG_COUNT)); \
+		do printf "&theme%i_st[0],\n" $$i >> $@; \
+	done
+	echo "};" >> $@
+	echo "const char*** themes_st = &_themes_st[0];" >> $@
 
 # Alternative way to do so that is faster but need debugging
 #BG_LIST  := $(shell ls pictures/bg*.ff)

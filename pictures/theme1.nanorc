@@ -1,6 +1,5 @@
-# stfg=4
-set titlecolor    white,black
-set numbercolor   white,black
-set statuscolor   white,black
-set keycolor      white,black
-set functioncolor white,black
+set titlecolor    white,blue
+set numbercolor   blue,white
+set statuscolor   blue,white
+set keycolor      white,blue
+set functioncolor blue,white

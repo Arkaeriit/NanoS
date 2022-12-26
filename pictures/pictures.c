@@ -1,9 +1,11 @@
-#include "bg.h"
 #include "time.h"
 #include "string.h"
 #include "stdlib.h"
-#include "nanorc.h"
 #include "stdbool.h"
+
+#include "bg.h"
+#include "nanorc.h"
+#include "themes_st.h"
 
 #define __USE_GNU
 #include <stdio.h>
@@ -162,25 +164,10 @@ uint8_t* picture_get_bg(uint32_t width, uint32_t height) {
 }
 
 /*
- * Return the foreground color of the theme
+ * Return the table of st theme.
  */
-#define stfg_beacon "stfg="
-unsigned int picture_get_fg(void) {
-	const char* theme = (const char*) nanorc[get_bg_index()];
-	for (size_t i=0; i<strlen(theme)-strlen(stfg_beacon); i++) {
-		if (!memcmp(stfg_beacon, theme+i, strlen(stfg_beacon))) {
-			for (size_t j=i+strlen(stfg_beacon); j<strlen(theme); j++) {
-				if (theme[j] < '0' || theme[j] > '9') {
-					char buff[j-i];
-					memset(buff, 0, j-i);
-					memcpy(buff, theme+i+strlen(stfg_beacon), j-i-strlen(stfg_beacon));
-					return atoi(buff);	
-				}
-			}
-			break;
-		}
-	}
-	return ~0;
+const char** picture_get_st_theme(void) {
+	return themes_st[get_bg_index()];
 }
 
 /*
