@@ -50,6 +50,7 @@ static uint8_t* farbfeld_init(uint32_t width, uint32_t height) {
 	return ret;
 }
 
+#ifndef TEST_PICTURES_C
 /*
  * Get the index of the desired background picture.
  * Choose it once randomly and then return always the same.
@@ -62,6 +63,7 @@ static int get_bg_index(void) {
 	}
 	return ret;
 }
+#endif
 
 /*
  * Scale a farbfeld picture by the desired factor.
@@ -153,6 +155,7 @@ static uint8_t* farbfeld_resize(const uint8_t* pic, uint32_t width, uint32_t hei
 	return ret;
 }
 
+#ifndef TEST_PICTURES_C
 /*
  * Return a background with the correct dimentions.
  */
@@ -176,6 +179,7 @@ const char** picture_get_st_theme(void) {
 const char* picture_get_nano_theme(void) {
 	return (const char*) nanorc[get_bg_index()];
 }
+#endif
 
 #ifdef TEST_PICTURES_C
 #include "stdio.h"
